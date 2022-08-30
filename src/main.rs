@@ -59,11 +59,9 @@ fn wordle() {
         std::collections::HashMap::new();
 
     // Possible words to be the target word to guess
-    /*let possible_words = [
-        "gamer", "silly", "fucky", "death", "ocher", "knife", "trans", "music",
-    ];*/
-
-    let possible_words = ["lilac"];
+    let possible_words = [
+        "gamer", "silly", "fucky", "death", "ocher", "knife", "trans", "music", "lilac",
+    ];
 
     // The word the player is trying to guess
     let target_word = possible_words
