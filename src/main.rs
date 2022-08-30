@@ -46,7 +46,7 @@ fn wordle() {
     let possible_words: Vec<String>;
 
     {
-        let all_words: &str = include_str!("valid-wordle-words.txt");
+        let all_words: &str = include_str!("wordle-nyt-answers-alphabetical.txt");
         possible_words = words_list(all_words, &config);
     }
 
