@@ -58,11 +58,6 @@ fn wordle() {
 
     // Possible words to be the target word to guess
 
-    let alphabet = [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    ];
-
     // The word the player is trying to guess
     let target_word = possible_words
         .choose(&mut rand::thread_rng())
@@ -71,6 +66,9 @@ fn wordle() {
 
     // Number of guesses made by the player during the game
     let mut guesses = 0;
+
+    print_tried_letters(&target_letter_count);
+    print!(" ");
 
     // Game loop (break on max guesses)
     while guesses < config.guess_tries {
@@ -177,19 +175,7 @@ fn wordle() {
         }
 
         // Prints tried letters (DOES NOT FLUSH, buffer is flushed on next input prompt call)
-        for letter in alphabet {
-            if target_letter_count.contains_key(&letter)
-                && *target_letter_count.entry(letter).or_default() == 0
-            {
-                print!("{}", String::from(letter).red());
-            } else if target_letter_count.contains_key(&letter)
-                && *target_letter_count.entry(letter).or_default() > 0
-            {
-                print!("{}", String::from(letter).blue())
-            } else {
-                print!("{}", String::from(letter));
-            }
-        }
+        print_tried_letters(&target_letter_count);
 
         // Insert space after letter list before input prompt
         print!(" ")
@@ -223,4 +209,21 @@ fn words_list(all_words: &str, config: &Configuration) -> Vec<String> {
         .map(sanitize_word)
         .filter(|line| line.len() == config.guess_letters as usize)
         .collect()
+}
+
+/// Print list of tried letters from A to Z
+fn print_tried_letters(target_letter_count: &std::collections::HashMap<char, u8>) {
+    let alphabet = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    ];
+    for letter in alphabet {
+        if target_letter_count.contains_key(&letter) && target_letter_count[&letter] == 0 {
+            print!("{}", String::from(letter).red());
+        } else if target_letter_count.contains_key(&letter) && target_letter_count[&letter] > 0 {
+            print!("{}", String::from(letter).blue())
+        } else {
+            print!("{}", String::from(letter));
+        }
+    }
 }
