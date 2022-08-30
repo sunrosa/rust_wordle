@@ -18,15 +18,6 @@ enum Correctness {
     Incorrect,
 }
 
-/// Whether a letter is used or not in the word to guessw.
-enum LetterUsage {
-    /// The letter is used in the word.
-    Used,
-
-    /// The letter is not used in the word.
-    Unused,
-}
-
 /// Result of the game that was played.
 enum GameResult {
     /// The player won.
@@ -60,7 +51,12 @@ fn wordle() {
 
     // Possible words to be the target word to guess
     let possible_words = [
-        "gamer", "silly", "fucky", "death", "ocher", "knife", "trans", "music", "lilac",
+        "gamer", "silly", "fucky", "death", "ocher", "knife", "trans", "music", "lilac", "bunny",
+    ];
+
+    let alphabet = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     ];
 
     // The word the player is trying to guess
@@ -167,6 +163,20 @@ fn wordle() {
         if input == target_word {
             result = GameResult::Success;
             break;
+        }
+
+        for letter in alphabet {
+            if target_letter_count.contains_key(&letter)
+                && *target_letter_count.entry(letter).or_default() == 0
+            {
+                print!("{}", String::from(letter).red());
+            } else if target_letter_count.contains_key(&letter)
+                && *target_letter_count.entry(letter).or_default() > 0
+            {
+                print!("{}", String::from(letter).blue())
+            } else {
+                print!("{}", String::from(letter));
+            }
         }
     }
     // Finalize the game
