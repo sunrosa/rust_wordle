@@ -165,9 +165,13 @@ fn wordle() {
             }
         }
         println!();
+
+        if input == target_word {
+            result = GameResult::Success;
+            break;
+        }
     }
     // Finalize the game
-    println!();
     match result {
         GameResult::Success => {}
         GameResult::Failure => {
