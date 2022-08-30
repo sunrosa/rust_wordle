@@ -6,6 +6,7 @@ fn main() {
 }
 
 /// Correctness of a letter used in a position.
+#[derive(PartialEq)]
 enum Correctness {
     /// The correct letter is in the correct position.
     Correct,
@@ -54,7 +55,7 @@ fn wordle() {
     let mut result = GameResult::Failure;
 
     // Array of guessed letters in order from A to Z, and the number of instances of the letter in the target word
-    let mut target_letter_count: std::collections::HashMap<char, i8> =
+    let mut target_letter_count: std::collections::HashMap<char, u8> =
         std::collections::HashMap::new();
 
     // Possible words to be the target word to guess
@@ -76,6 +77,9 @@ fn wordle() {
     // Game loop (break on max guesses)
     while guesses < config.guess_tries {
         guesses += 1;
+
+        let mut correctness: std::collections::HashMap<u8, Correctness> =
+            std::collections::HashMap::new();
 
         // Number of times a certain letter has been printed as contained in the target word
         let mut letter_count: std::collections::HashMap<char, u8> =
@@ -99,37 +103,69 @@ fn wordle() {
         }
 
         // TODO: This needs to be modified to make the correct place calculations take place BEFORE the letter exists calculations.
+        // Operations on input
         for i in 0..input.chars().count() {
             let letter = input.as_bytes()[i] as char;
 
             // Count letters in input
             let count = target_word.chars().filter(|c| c == &letter).count() as i8;
-            target_letter_count.entry(letter).or_insert(count);
+            target_letter_count.entry(letter).or_insert(count as u8);
+
+            // Mark correctly placed letters
+        }
+
+        for i in 0..input.chars().count() {
+            let letter = input.as_bytes()[i] as char;
 
             if letter == target_word.as_bytes()[i] as char {
                 // If letter is in the correct position
                 *letter_count.entry(letter).or_insert(0) += 1;
-                print!("{}", String::from(letter).green())
-            } else if target_word.chars().any(|c| c == letter) {
+                correctness.entry(i as u8).or_insert(Correctness::Correct);
+            }
+        }
+
+        for i in 0..input.chars().count() {
+            let letter = input.as_bytes()[i] as char;
+
+            // Mark letters that exist in target word
+            if target_word.chars().any(|c| c == letter) {
                 // If letter exists in target word
-                if *letter_count.entry(letter).or_insert(0)
-                    < target_word.chars().filter(|c| c == &letter).count() as u8
+                if letter_count.entry(letter).or_insert(0)
+                    < target_letter_count.entry(letter).or_insert(0)
+                    && letter != target_word.as_bytes()[i] as char
                 {
                     // Letter has not already been marked as existing (if there are more than one)
                     *letter_count.entry(letter).or_insert(0) += 1;
-                    print!("{}", String::from(letter).blue());
+                    correctness
+                        .entry(i as u8)
+                        .or_insert(Correctness::CorrectLetter);
                 } else {
                     // Letter has already been marked as existing (if there are more than one)
-                    print!("{}", letter);
+                    correctness.entry(i as u8).or_insert(Correctness::Incorrect);
                 }
-            } else {
+            }
+            // Mark letters that are not in target word
+            else {
                 // If letter is not in target word
-                print!("{}", letter);
+                correctness.entry(i as u8).or_insert(Correctness::Incorrect);
+            }
+        }
+
+        for i in 0..input.chars().count() {
+            match correctness.entry(i as u8).or_insert(Correctness::Incorrect) {
+                Correctness::Correct => {
+                    print!("{}", String::from(input.as_bytes()[i] as char).green())
+                }
+                Correctness::CorrectLetter => {
+                    print!("{}", String::from(input.as_bytes()[i] as char).blue())
+                }
+                Correctness::Incorrect => {
+                    print!("{}", String::from(input.as_bytes()[i] as char))
+                }
             }
         }
         println!();
     }
-
     // Finalize the game
     println!();
     match result {
