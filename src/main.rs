@@ -84,7 +84,7 @@ fn wordle() {
             std::collections::HashMap::new();
 
         // Prompt user input
-        print!("> ");
+        print!("({}/{})> ", guesses, config.guess_tries);
         flush();
 
         // Read user input
@@ -170,11 +170,13 @@ fn wordle() {
         }
         println!();
 
+        // Mark success and end game loop if word is guessed
         if input == target_word {
             result = GameResult::Success;
             break;
         }
 
+        // Prints tried letters (DOES NOT FLUSH, buffer is flushed on next input prompt call)
         for letter in alphabet {
             if target_letter_count.contains_key(&letter)
                 && *target_letter_count.entry(letter).or_default() == 0
@@ -188,8 +190,11 @@ fn wordle() {
                 print!("{}", String::from(letter));
             }
         }
+
+        // Insert space after letter list before input prompt
+        print!(" ")
     }
-    println!();
+    println!("");
     // Finalize the game
     match result {
         GameResult::Success => {}
