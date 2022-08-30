@@ -43,6 +43,13 @@ fn wordle() {
         guess_letters: 5,
     };
 
+    let possible_words: Vec<String>;
+
+    {
+        let all_words: &str = include_str!("valid-wordle-words.txt");
+        possible_words = words_list(all_words, &config);
+    }
+
     let mut result = GameResult::Failure;
 
     // Array of guessed letters in order from A to Z, and the number of instances of the letter in the target word
@@ -50,9 +57,6 @@ fn wordle() {
         std::collections::HashMap::new();
 
     // Possible words to be the target word to guess
-    let possible_words = [
-        "gamer", "silly", "fucky", "death", "ocher", "knife", "trans", "music", "lilac", "bunny",
-    ];
 
     let alphabet = [
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
@@ -87,7 +91,7 @@ fn wordle() {
         let mut input: String = text_io::read!("{}\n");
 
         // Strip user input of additional whitespace, including newlines
-        input = input.trim().to_string();
+        input = input.trim().to_lowercase().to_string();
 
         // Catch incorrect number of letters in guess, and refund the guess try
         if input.len() != config.guess_letters as usize {
@@ -96,7 +100,13 @@ fn wordle() {
             continue;
         }
 
-        // TODO: This needs to be modified to make the correct place calculations take place BEFORE the letter exists calculations.
+        // Catch invalid words and refund guess try
+        if !(&possible_words).into_iter().any(|w| w == &input) {
+            guesses -= 1;
+            println!("Please use a valid word.");
+            continue;
+        }
+
         // Operations on input
         for i in 0..input.chars().count() {
             let letter = input.as_bytes()[i] as char;
@@ -104,10 +114,9 @@ fn wordle() {
             // Count letters in input
             let count = target_word.chars().filter(|c| c == &letter).count() as i8;
             target_letter_count.entry(letter).or_insert(count as u8);
-
-            // Mark correctly placed letters
         }
 
+        // Mark correctly placed letters
         for i in 0..input.chars().count() {
             let letter = input.as_bytes()[i] as char;
 
@@ -118,6 +127,7 @@ fn wordle() {
             }
         }
 
+        // Mark existing letters and letters not in target word
         for i in 0..input.chars().count() {
             let letter = input.as_bytes()[i] as char;
 
@@ -179,6 +189,7 @@ fn wordle() {
             }
         }
     }
+    println!();
     // Finalize the game
     match result {
         GameResult::Success => {}
@@ -190,4 +201,21 @@ fn wordle() {
 
 fn flush() {
     std::io::Write::flush(&mut std::io::stdout()).unwrap();
+}
+
+fn sanitize_word(word: &str) -> String {
+    word.trim()
+        .to_lowercase()
+        .chars()
+        .filter(|c| c.is_ascii_alphabetic())
+        .collect()
+}
+
+fn words_list(all_words: &str, config: &Configuration) -> Vec<String> {
+    all_words
+        .split('\n')
+        .skip(2)
+        .map(sanitize_word)
+        .filter(|line| line.len() == config.guess_letters as usize)
+        .collect()
 }
